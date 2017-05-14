@@ -1,0 +1,46 @@
+:local
+  .treeview-item
+    display flex
+    align-items center
+    cursor default
+    &:global(.even)
+      background #f0f0f0
+    &.artboard
+      background #f9f9f9
+      box-shadow inset 0 -0.5px 0 0 #B8B8B8, inset 0 0.5px 0 0 #B8B8B8
+    &:global(.selected)
+      color white
+      background #6e9ee1
+      .icon
+        fill white
+        color white
+      .icon-expand
+        &::after
+          border-top-color white
+  .icon
+    margin-left 8px
+    fill #a6a6a6
+    color #a6a6a6
+    width 16px
+    height 16px
+    line-height 16px
+    text-align center
+    user-select none
+    &.icon-symbol
+      fill #8f44b7
+    &.icon-expand
+      width 12px
+      height 16px
+      margin-left 6px
+  .icon-expand
+    box-sizing border-box
+    padding 6px 0 4px
+    &::after
+      content ''
+      display block
+      width 12px
+      height 6px
+      box-sizing border-box
+      border-width 6px 6px 0
+      border-color #a6a6a6 rgba(0, 0, 0, 0)
+      border-style solid
