@@ -1,0 +1,79 @@
+.header {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 1px 0 0 #b2b2b2;
+}
+
+.header a {
+    color: #666;
+    text-decoration: none;
+}
+
+.header a:hover {
+    color: #333;
+    cursor: pointer;
+}
+
+.flex {
+    flex: 1;
+}
+
+.title {
+    text-decoration: none;
+    font-size: 18px;
+    color: #666;
+    width: 120px;
+}
+
+.filename {
+    flex: 1;
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+
+}
+
+.title:hover {
+    color: #333;
+}
+
+.icon {
+    fill: #999;
+
+}
+
+.actions {
+    width: 120px;
+}
+
+.icon-link {
+    display: block;
+    float: right;
+    height: 16px;
+}
+
+.icon-link:hover .icon {
+    fill: #333;
+}
+
+.upload-area {
+    margin: 240px auto 0;
+
+    width: 320px;
+    padding: 16px;
+}
+
+.upload-button {
+    cursor: pointer;
+    display: block;
+    background: #3884ff;
+    color: white;
+    text-align: center;
+    padding: 4px 16px;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 24px;
+}
+

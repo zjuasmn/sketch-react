@@ -1,23 +1,7 @@
-import React from 'react'
-import classnames from 'classnames'
-import PropTypes from 'prop-types'
+import React from "react";
 
 
 export default class Symbol extends React.Component {
-  static childContextTypes = {
-    onClick: PropTypes.func,
-    onMouseEnter: PropTypes.func,
-    onMouseLeave: PropTypes.func,
-  };
-  
-  getChildContext() {
-    return {
-      onClick: () => this.selectLayer(this.props.model.do_objectID),
-      onMouseEnter: () => false,
-      onMouseLeave: () => false,
-    };
-  }
-  
   render() {
     let {model: {frame}, ...props} = this.props;
     let style = {

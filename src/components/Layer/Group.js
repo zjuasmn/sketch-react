@@ -1,5 +1,4 @@
-import React from 'react'
-import classnames from 'classnames'
+import React from "react";
 
 function isMaskGroup(model) {
   if (!(model.layers && model.layers.length > 1 && model.layers[0].hasClippingMask)) {
@@ -34,6 +33,7 @@ export default class Group extends React.Component {
       width: frame.width,
       top: frame.y,
       left: frame.x,
+      ...model.style.toStyle(model)
     };
     
     if (!isMaskGroup(model)) {

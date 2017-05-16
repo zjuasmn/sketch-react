@@ -1,7 +1,7 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import {getObjectById} from '../../utils'
-import styles from './Document.styl'
+import React from "react";
+import PropTypes from "prop-types";
+import {getObjectById} from "../../utils";
+import styles from "./Document.styl";
 function getp(a1, a2, b1, b2) { // a1 <= a2, b1 <= b2, select a, hover b
   if (b1 <= a1 && a2 <= b2) {
     return (a1 + a2) / 2;
@@ -74,15 +74,14 @@ function gao(a, b, o) {// select a, hover b, canvas o
   return hLines.concat(vLines);
 }
 
-export default class LayerIndicator extends React.Component {
+export default class LayerIndicator extends React.PureComponent {
   static propTypes = {
     selectedLayer: PropTypes.string,
+    hoveredLayer: PropTypes.string,
   };
   
   render() {
-    
     let {selectedLayer, hoveredLayer} = this.props;
-    console.log(hoveredLayer);
     if (!selectedLayer && !hoveredLayer) {
       return false
     }
@@ -94,7 +93,6 @@ export default class LayerIndicator extends React.Component {
     let b = hoveredDOM && hoveredDOM.getBoundingClientRect();
     let o = canvasDOM.getBoundingClientRect();
     let selectedmodel = getObjectById(selectedLayer);
-    let hoveredModel = getObjectById(hoveredLayer);
     return (
       <div>
         {b && <div className={styles['frame-hovered']} style={{
@@ -103,6 +101,7 @@ export default class LayerIndicator extends React.Component {
           left: b.left - o.left,
           top: b.top - o.top,
         }}/>}
+        {r && b && gao(r, b, o)}
         {r && <div className={styles['frame-selected']} style={{
           width: r.width,
           height: r.height,
@@ -114,12 +113,14 @@ export default class LayerIndicator extends React.Component {
             height: r.height,
             left: o.left - r.left,
             top: -1,
+            borderWidth: `1px 0`
           }}/>
           <div className={styles['frame-expand']} style={{
             width: r.width,
             height: o.height,
             left: -1,
             top: o.top - r.top,
+            borderWidth: `0 1px`
           }}/>
           <div className={styles['frame-note']} style={{
             top: -10,
@@ -133,7 +134,7 @@ export default class LayerIndicator extends React.Component {
           }}>{`${Math.round(selectedmodel.frame.height)}px`}
           </div>
         </div>}
-        {r && b && gao(r, b, o)}
+
       </div>
     );
     

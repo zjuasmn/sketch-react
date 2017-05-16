@@ -1,17 +1,15 @@
-import React from 'react'
-import classnames from 'classnames'
-import JSZip from 'jszip'
-import {parse, getObjectById, clear, objectMapping} from '../../utils'
-import 'babel-polyfill'
+import React from "react";
+import JSZip from "jszip";
+import {clear, parse} from "../../utils";
+import "babel-polyfill";
 import Layer from "../Layer/Layer";
-import PageSelector from './PageSelector'
+import PageSelector from "./PageSelector";
 import LayerSelector from "./LayerSelector";
-import PropTypes from 'prop-types'
-import styles from './Document.styl'
-import LayerIndicator from './LayerIndicator'
-import throttle from 'lodash/throttle'
-import Perf from 'react-addons-perf'
-window.Perf = Perf;
+import PropTypes from "prop-types";
+import styles from "./Document.styl";
+import LayerIndicator from "./LayerIndicator";
+import LayerInfo from "./LayerInfo";
+
 export default class Document extends React.PureComponent {
   static propTypes = {
     blob: PropTypes.instanceOf(Blob),
@@ -42,41 +40,44 @@ export default class Document extends React.PureComponent {
   }
   
   async init(props) {
-    this.state = {loading: true};
-    let zip = await JSZip.loadAsync(await props.blob);
+    try {
+      this.state = {loading: true};
+      let zip = await JSZip.loadAsync(await props.blob);
     
-    let json = JSON.parse(await zip.file('document.json')
-      .async('string'));
-    let meta = JSON.parse(await zip.file('meta.json')
-      .async('string'));
-    let model = parse(json, zip);
-    for (let i = 0; i < model.pages.length; ++i) {
-      let page = model.pages[i] = await model.pages[i].getInstance();
-  
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (let layer of page.layers) {
-        minX = Math.min(minX, layer.frame.x);
-        minY = Math.min(minY, layer.frame.y);
-        maxX = Math.max(maxX, layer.frame.x + layer.frame.width);
-        maxY = Math.max(maxY, layer.frame.y + layer.frame.height);
+      let json = JSON.parse(await zip.file('document.json')
+        .async('string'));
+      let meta = JSON.parse(await zip.file('meta.json')
+        .async('string'));
+      let model = parse(json, zip);
+      for (let i = 0; i < model.pages.length; ++i) {
+        let page = model.pages[i] = await model.pages[i].getInstance();
+      
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (let layer of page.layers) {
+          minX = Math.min(minX, layer.frame.x);
+          minY = Math.min(minY, layer.frame.y);
+          maxX = Math.max(maxX, layer.frame.x + layer.frame.width);
+          maxY = Math.max(maxY, layer.frame.y + layer.frame.height);
+        }
+        minX -= 32;
+        minY -= 32;
+        maxX += 32;
+        maxY += 32;
+        for (let layer of page.layers) {
+          layer.frame.x -= minX;
+          layer.frame.y -= minY;
+        }
+        page.frame.x = 0;
+        page.frame.y = 0;
+        page.frame.width = maxX - minX;
+        page.frame.height = maxY - minY;
       }
-      minX -= 32;
-      minY -= 32;
-      maxX += 32;
-      maxY += 32;
-      for (let layer of page.layers) {
-        layer.frame.x -= minX;
-        layer.frame.y -= minY;
-      }
-      page.frame.x = 0;
-      page.frame.y = 0;
-      page.frame.width = maxX - minX;
-      page.frame.height = maxY - minY;
-      console.log(page.frame);
+      this.zip = zip;
+      this.model = model;
+      this.setState({loading: false, selectedPage: model.pages[0], meta});
+    } catch (e) {
+      alert('fail!!');
     }
-    this.zip = zip;
-    this.model = model;
-    this.setState({loading: false, selectedPage: model.pages[0], meta});
   }
   
   selectPage = (pageID) => {
@@ -129,7 +130,6 @@ export default class Document extends React.PureComponent {
           </aside>
           <div className={styles.main}>
             <div className={styles.canvas} id="canvas" style={{
-              position: 'relative',
               width: selectedPage.frame.width,
               height: selectedPage.frame.height,
             }}>
@@ -138,7 +138,7 @@ export default class Document extends React.PureComponent {
             </div>
           </div>
           <aside className={styles['sidebar-info']}>
-            info
+            <LayerInfo layer={selectedLayer}/>
           </aside>
         </div>
       );

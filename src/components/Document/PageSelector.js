@@ -1,12 +1,7 @@
-import React from 'react'
-import classnames from 'classnames'
+import React from "react";
 
 
-export default class PageSelector extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  
+export default class PageSelector extends React.PureComponent {
   render() {
     let {model, selectedPage, onSelect, style, ...props} = this.props;
     return (

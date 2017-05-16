@@ -23,6 +23,10 @@ module.exports = {
         loaders: ['style-loader', 'css-loader', "stylus-loader"]
       },
       {
+        test: /\.css$/,
+        loaders: ['style-loader', 'css-loader']
+      },
+      {
         test: /\.(png)$/,
         loaders: ["file-loader"]
       },

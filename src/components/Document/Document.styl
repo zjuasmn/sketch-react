@@ -17,6 +17,10 @@
     flex 1
     overflow auto
     background #f2f2f2
+  .canvas
+    position relative
+    min-width 100%
+    min-height 100%
   .sidebar-info
     width 240px
     box-sizing border-box
@@ -27,16 +31,17 @@
     display flex
     align-items center
     cursor default
-    white-space nowrap
+    padding-right 8px
     &:global(.even)
       background #f0f0f0
-
     &.artboard
       background #f9f9f9
       box-shadow inset 0 -0.5px 0 0 #B8B8B8, inset 0 0.5px 0 0 #B8B8B8
     &:global(.hover), &:hover
       box-sizing border-box
       box-shadow inset 0 0 0 2px #44c1ff
+    &:global(.hidden)
+      color #929292
     &:global(.selected)
       color white
       background #6e9ee1
@@ -46,7 +51,12 @@
       .icon-expand
         &::after
           border-top-color white
-
+    .text
+      flex 1
+      margin-left 8px
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
   .icon
     margin-left 8px
     flex none
@@ -102,3 +112,33 @@
     border-radius 2px
     padding 0 4px
     transform translate(-50%, -50%)
+
+  .info
+    background #f2f2f2
+    height 100%
+    overflow auto
+    .empty
+      font-size 16px
+      color #999
+      text-align center
+      padding 14px
+    .section-header
+      color #666
+      font-weight bold
+      padding-left 8px
+      font-size 12px
+      line-height 27px
+      background #f9f9f9
+      box-shadow inset 0 -0.5px 0 0 #B8B8B8, inset 0 0.5px 0 0 #B8B8B8
+    .previewer
+      margin 16px
+      background url(./bg.png)
+      background-color white
+      background-size 8px
+    .code
+      margin 16px
+      background white
+      white-space inherit
+      padding 8px;
+      font-family: monospace;
+      color: #666;

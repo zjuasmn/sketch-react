@@ -1,5 +1,4 @@
-import React from 'react'
-import classnames from 'classnames'
+import React from "react";
 
 
 export default class ShapeGroup extends React.Component {
@@ -50,6 +49,7 @@ export default class ShapeGroup extends React.Component {
         width: frame.width,
         top: frame.y,
         left: frame.x,
+  
         ...model.style.toStyle(model, true),
       }}
                   {...props}

@@ -1,13 +1,13 @@
-import React from 'react'
-import Page from './Page'
-import Artboard from './Artboard'
-import ShapeGroup from './ShapeGroup'
-import Group from './Group'
-import Symbol from './Symbol'
-import Text from './Text'
-import Bitmap from './Bitmap'
-import {getSymbolById} from '../../utils'
-import PropTypes from 'prop-types'
+import React from "react";
+import Page from "./Page";
+import Artboard from "./Artboard";
+import ShapeGroup from "./ShapeGroup";
+import Group from "./Group";
+import SymbolInstance from "./Symbol";
+import Text from "./Text";
+import Bitmap from "./Bitmap";
+import {getSymbolById} from "../../utils";
+import PropTypes from "prop-types";
 
 class PlaceHolder extends React.Component {
   render() {
@@ -44,7 +44,7 @@ function getComp(_class) {
     case `text`:
       return Text;
     case `symbolInstance`:
-      return Symbol;
+      return SymbolInstance;
     case `bitmap`:
       return Bitmap;
     default:
@@ -77,31 +77,42 @@ export default class Layer extends React.PureComponent {
     onMouseLeave: PropTypes.func,
   };
   onClick = (e) => {
+    if (this.props.inSymbol) {
+      return;
+    }
     this.context.onClick(this.props.model.do_objectID);
     e.stopPropagation();
   };
   onMouseEnter = (e) => {
+    if (this.props.inSymbol) {
+      return;
+    }
     this.context.onMouseEnter(this.props.model.do_objectID);
     // e.stopPropagation();
   };
   onMouseLeave = (e) => {
+    if (this.props.inSymbol) {
+      return;
+    }
     this.context.onMouseLeave(this.props.model.do_objectID);
     // e.stopPropagation();
   };
   
   render() {
-    let {model} = this.props;
+    let {model, inSymbol, ...props} = this.props;
     let {layers, _class} = model;
     let Comp = getComp(_class);
-    if (Comp === Symbol) {
+    if (Comp === SymbolInstance) {
       layers = getSymbolById(model['symbolID']).layers;
     }
-    return <Comp {...this.props} id={model.do_objectID}
+    return <Comp {...props} id={model.do_objectID}
+                 model={model}
                  onClick={this.onClick}
                  onMouseEnter={this.onMouseEnter}
                  onMouseLeave={this.onMouseLeave}
     >
-      {layers && layers.map(layer => <Layer key={layer['do_objectID']} model={layer}/>)}
+      {layers && layers.map(layer => <Layer key={layer['do_objectID']} model={layer}
+                                            inSymbol={!!inSymbol || Comp === SymbolInstance}/>)}
     </Comp>
   }
 }

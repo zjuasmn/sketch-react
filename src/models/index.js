@@ -1,4 +1,6 @@
-import 'babel-polyfill'
+import "babel-polyfill";
+import {BlendingMode} from "sketch-constants";
+import _ from "lodash";
 
 
 export class Page {
@@ -43,7 +45,7 @@ export class Gradient {
         y1 *= model.frame.height;
         y2 *= model.frame.height;
         let angle = 90 + Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-        return `linear-gradient(${angle}deg, ${this.stops.join(', ')})`
+        return `linear-gradient(${angle}deg, ${this.stops.join(', ')})`;
       default:
         return `<Empty>`;
     }
@@ -88,7 +90,7 @@ export class Style {
       if (!this['fills']) {
         Object.assign(ret, {fill: 'none'});
       } else {
-        
+        Object.assign(ret, {fill: 'none'});
         let fills = this['fills'].filter(fill => fill['isEnabled']).reverse();
         if (fills.length) {
           Object.assign(ret, {fill: fills[0].color.toString()});
@@ -136,8 +138,6 @@ export class Style {
 export class GraphicsContextSettings {
   static _class = 'graphicsContextSettings';
 }
-import {BlendingMode} from 'sketch-constants'
-import _ from 'lodash'
 export class Fill {
   static _class = 'fill';
   
@@ -327,7 +327,6 @@ export class Text {
   static _class = 'text';
   
 }
-import {parseBase64} from './../utils/bplist-parser'
 export class MSAttributedString {
   static _class = "MSAttributedString";
 //
