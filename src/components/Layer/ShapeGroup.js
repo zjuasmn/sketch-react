@@ -10,9 +10,6 @@ export default class ShapeGroup extends React.Component {
   render() {
     let {model, children, ...props} = this.props;
     let {frame} = model;
-    // if (!model['isEnabled']){
-    //   return false;
-    // }
     if (model.layers.length === 1 && !model.layers[0].edited
       && ( model.layers[0]._class === 'rectangle'
         || model.layers[0]._class === 'oval' && frame.height === frame.width
@@ -26,10 +23,12 @@ export default class ShapeGroup extends React.Component {
         left: frame.x,
         overflow: 'hidden',
         ...model.style.toStyle(model),
-      }}>{
+      }}
+                  {...props}
+      >{
         model.style['fills'] && model.style['fills']
           .filter(fill => fill['isEnabled'])
-          .map((fill,i) => <div
+          .map((fill, i) => <div
             key={i}
             style={{
               height: '100%',
@@ -52,7 +51,9 @@ export default class ShapeGroup extends React.Component {
         top: frame.y,
         left: frame.x,
         ...model.style.toStyle(model, true),
-      }}>
+      }}
+                  {...props}
+      >
         <g>
           <path d={d}/>
         </g>

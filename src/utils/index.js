@@ -21,13 +21,21 @@ function isPlistArchive(o) {
   return o && typeof o === 'object' && '_archive' in o;
 }
 import {parseBase64} from './bplist-parser'
-let objectMapping = {};
+export let objectMapping = {};
+export let symbolMapping = {};
+
 export function clear() {
   objectMapping = {};
+  symbolMapping = {};
 }
+
 export function getObjectById(id) {
   return objectMapping[id];
 }
+export function getSymbolById(id) {
+  return symbolMapping[id];
+}
+
 export function parse(json, zip) {
   
   if (isClass(json)) {
@@ -36,9 +44,9 @@ export function parse(json, zip) {
       let ret = new mapping[className](zip, parse);
       setProps(ret, json, zip);
       if (className === 'symbolMaster') {
-        console.log(json['symbolID']);
-        objectMapping[json['symbolID']] = ret;
+        symbolMapping[json['symbolID']] = ret;
       }
+      objectMapping[json['do_objectID']] = ret;
       return ret;
     } else {
       return json;
@@ -49,6 +57,7 @@ export function parse(json, zip) {
     for (let prop in json) {
       json[prop] = parse(json[prop], zip);
     }
+  
     return json;
   }
   else if (json instanceof Array) {

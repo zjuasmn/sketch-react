@@ -16,7 +16,7 @@ let bitmap = <svg className={styles['icon']} viewBox="0 0 1024 1024" width="16" 
     d="M904 128 120 128c-31.2 0-56 25.4-56 56.6l0 654.8c0 31.2 24.8 56.6 56 56.6l784 0c31.2 0 56-25.4 56-56.6L960 184.6C960 153.4 935.2 128 904 128zM697.8 523.4c-6-7-15.2-12.4-25.6-12.4-10.2 0-17.4 4.8-25.6 11.4l-37.4 31.6c-7.8 5.6-14 9.4-23 9.4-8.6 0-16.4-3.2-22-8.2-2-1.8-5.6-5.2-8.6-8.2L448 430.6c-8-9.2-20-15-33.4-15-13.4 0-25.8 6.6-33.6 15.6L128 736.4 128 215.4c2-13.6 12.6-23.4 26.2-23.4l715.4 0c13.8 0 25 10.2 25.8 24l0.6 520.8L697.8 523.4z"
   />
 </svg>;
-export default class LayerSelector extends React.Component {
+export default class LayerSelector extends React.PureComponent {
   constructor(props) {
     super(props);
   }
@@ -34,27 +34,50 @@ export default class LayerSelector extends React.Component {
     return false;
   };
   
-  treeview = (model, depth = 0, marginLeft) => {
-    let {selectedLayer, hoverdLayer, onSelect, onHover} = this.props;
+  treeview = (model, depth = 0, hasMask) => {
+    let {selectedLayer, hoveredLayer, onSelect, onMouseEnter, onMouseLeave} = this.props;
     
     let canExpanded = model.layers && model._class !== 'shapeGroup' && (
         model.layers.length > 0 ||
         model._class === 'artboard'
       );
     let isExpanded = model.layerListExpandedType !== 1;
+    
+    let layerMaskFlag = [];
+    if (canExpanded && isExpanded) {
+      let underLyingMask = false;
+      for (let layer of model.layers) {
+        if (layer.hasClippingMask) {
+          underLyingMask = true;
+          layerMaskFlag.push(false);
+          continue;
+        }
+        if (layer.shouldBreakMaskChain) {
+          underLyingMask = false;
+        }
+        layerMaskFlag.push(underLyingMask);
+      }
+      layerMaskFlag.reverse();
+    }
     ++this.idx;
+    
     return <div key={model.do_objectID}>
       <a className={classnames(styles['treeview-item'], {
         selected: model.do_objectID === selectedLayer
         , [styles['artboard']]: depth === 0,
-        even: this.idx % 2 === 0
+        even: this.idx % 2 === 0,
+        hover: hoveredLayer === model.do_objectID,
       })}
-           style={{paddingLeft: depth * 16,}}
-           onClick={() => onSelect(model.do_objectID)}>
+         style={{paddingLeft: depth * 16,}}
+         onClick={() => onSelect(model.do_objectID)}
+         onMouseEnter={() => onMouseEnter(model.do_objectID)}
+         onMouseLeave={() => onMouseLeave(model.do_objectID)}
+      >
         <div className={classnames(styles['icon'], styles['icon-expand'])} style={{
           transform: isExpanded ? undefined : 'rotate(-90deg)',
           visibility: canExpanded ? undefined : 'hidden',
         }} onClick={(e) => this.toggleExpand(model, e)}/>
+        {hasMask && <div className={classnames(styles['icon'], styles['icon-mask'])}>↳</div>}
         {model._class === 'group' && folder}
         {model._class === 'text' &&
         <div className={styles['icon']}>Aa</div>}
@@ -64,10 +87,10 @@ export default class LayerSelector extends React.Component {
         {model._class === 'bitmap' && bitmap}
         <span style={{marginLeft: 8}}>{model.name}</span>
       </a>
-      
-      { canExpanded && isExpanded && <div>
-        {model.layers.slice(0).reverse().map(layer =>
-          this.treeview(layer, depth + 1)
+      { canExpanded && isExpanded &&
+      <div>
+        {model.layers.slice(0).reverse().map((layer, i) =>
+          this.treeview(layer, depth + 1, layerMaskFlag[i])
         )}
       </div>
       }
@@ -75,7 +98,7 @@ export default class LayerSelector extends React.Component {
   };
   
   render() {
-    let {model, selectedLayer, hoverdLayer, onSelect, onHover, filterstyle, style, ...props} = this.props;
+    let {model, selectedLayer, hoveredLayer, onSelect, onMouseEnter, onMouseLeave, style, ...props} = this.props;
     this.idx = 0;
     return (
       <div style={{

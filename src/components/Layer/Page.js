@@ -12,11 +12,7 @@ export default class Page extends React.Component {
     
     return (
       <div style={{
-        position: 'absolute',
-        background: '#f2f2f2',
-        height: '100%',
-        width: '100%',
-        overflow: 'auto',
+        position: 'relative',
       }} {...props}>
         
         {children}

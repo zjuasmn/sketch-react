@@ -6,7 +6,9 @@ import Group from './Group'
 import Symbol from './Symbol'
 import Text from './Text'
 import Bitmap from './Bitmap'
-import {parse, getObjectById} from '../../utils'
+import {getSymbolById} from '../../utils'
+import PropTypes from 'prop-types'
+
 class PlaceHolder extends React.Component {
   render() {
     let {model} = this.props;
@@ -68,40 +70,37 @@ class Mask extends React.Component {
       </div>);
   }
 }
-export default class Layer extends React.Component {
+export default class Layer extends React.PureComponent {
+  static contextTypes = {
+    onClick: PropTypes.func,
+    onMouseEnter: PropTypes.func,
+    onMouseLeave: PropTypes.func,
+  };
+  onClick = (e) => {
+    this.context.onClick(this.props.model.do_objectID);
+    e.stopPropagation();
+  };
+  onMouseEnter = (e) => {
+    this.context.onMouseEnter(this.props.model.do_objectID);
+    // e.stopPropagation();
+  };
+  onMouseLeave = (e) => {
+    this.context.onMouseLeave(this.props.model.do_objectID);
+    // e.stopPropagation();
+  };
+  
   render() {
     let {model} = this.props;
     let {layers, _class} = model;
     let Comp = getComp(_class);
     if (Comp === Symbol) {
-      layers = getObjectById(model['symbolID']).layers;
+      layers = getSymbolById(model['symbolID']).layers;
     }
-    // if (Comp !== Mask && layers) {
-    //   let _layers = [];
-    //   for (let i = 0; i < layers.length; ++i) {
-    //     let m = layers[i];
-    //     if (m.hasClippingMask && m.layers.length === 1 && !m.layers[0].edited
-    //       && ( m.layers[0]._class === 'rectangle'
-    //         || m.layers[0]._class === 'oval'
-    //       )
-    //     ) {
-    //       let maskLayer = {
-    //         ...layers[i],
-    //         _class: 'mask',
-    //       };
-    //       let j;
-    //       for (j = i; j < layers.length && !layers[j].shouldBreakMaskChain; ++j) {
-    //         maskLayer.layers.push(layers[i]);
-    //       }
-    //       _layers.push(maskLayer);
-    //       i = j;
-    //     } else {
-    //       _layers.push(layers[i]);
-    //     }
-    //   }
-    //   layers = _layers;
-    // }
-    return <Comp {...this.props}>
+    return <Comp {...this.props} id={model.do_objectID}
+                 onClick={this.onClick}
+                 onMouseEnter={this.onMouseEnter}
+                 onMouseLeave={this.onMouseLeave}
+    >
       {layers && layers.map(layer => <Layer key={layer['do_objectID']} model={layer}/>)}
     </Comp>
   }

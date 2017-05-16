@@ -8,7 +8,7 @@ export default class Text extends React.Component {
   }
   
   render() {
-    let {model} = this.props;
+    let {model, ...props} = this.props;
     let {frame} = model;
     
     return <span style={{
@@ -19,6 +19,8 @@ export default class Text extends React.Component {
       left: frame.x,
       overflow: 'hidden',
       ...model.style.textStyle.toStyle(model),
-    }}>{model.attributedString.archivedAttributedString.NSString}</span>;
+    }}
+                 {...props}
+    >{model.attributedString.archivedAttributedString.NSString}</span>;
   }
 }

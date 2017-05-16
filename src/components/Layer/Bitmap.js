@@ -15,7 +15,7 @@ export default class Bitmap extends React.Component {
   }
   
   render() {
-    let {model} = this.props;
+    let {model, ...props} = this.props;
     let {frame} = model;
     return <img style={{
       display: 'block',
@@ -24,6 +24,8 @@ export default class Bitmap extends React.Component {
       width: frame.width,
       top: frame.y,
       left: frame.x,
-    }} src={this.state.url}/>
+    }} src={this.state.url}
+                {...props}
+    />
   }
 }
