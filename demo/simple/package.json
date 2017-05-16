@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "webpack": "webpack",
+    "release": "webpack -p",
     "watch": "webpack -w",
     "dev": "webpack-dev-server"
   },
