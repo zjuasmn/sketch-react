@@ -8,7 +8,9 @@ The goal of this project is trying to reduce the gap  between UI design and fron
 
 Here, we take a step further by generate html from .sketch file\(v43+\). So you can copy a group of element as html code and paste it in online or local text editor. Just a copy and paste from design to working code. Enjoy it.
 
-![](/assets/screenshot.jpg)![](/assets/screenshot2.jpg)
+![](/assets/demo.gif)
+
+![](/assets/screenshot.jpg)
 
 # Limitation
 
