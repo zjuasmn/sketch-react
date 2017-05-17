@@ -4,13 +4,26 @@
 
 Project is still in beta, help and advise are welcome.
 
-The goal of this project is trying to reduce the gap  between UI design and front-end development \(for now, just web\).  A lot of time of front-end development is spent in matching the given UI design instead of implementing application logic. There are  collaboration tools like [Zeplin ](https://www.zeplin.io/) to help marking the design, but programmer still needs to measure and copy css for each element assemble them and copy icons and other assets one by one.
+The goal of this project is trying to reduce the gap  between UI design and front-end development \(for now, just html\).  A lot of time of front-end development is spent in matching the given UI design instead of implementing application logic. There are  collaboration tools like [Zeplin ](https://www.zeplin.io/) to help marking the design, but programmer still needs to measure and copy css for each element assemble them and copy icons and other assets one by one.
 
 Here, we take a step further by generate html from .sketch file\(v43+\). So you can copy a group of element as html code and paste it in online or local text editor. Just a copy and paste from design to working code. Enjoy it.
 
 ![](/assets/demo.gif)
 
-![](/assets/screenshot.jpg)
+# ![](/assets/screenshot.jpg)Roadmap
+
+* export to React code
+* autoprefix css
+* reduce export code size
+  * svg code optimization
+  * class style generate from symbol, share style
+* optimize position css
+  * detect row or column pattern of  elements
+  * detect padding
+  * detect corner element
+* minor edit
+  * visible & lock
+  * ...
 
 # Limitation
 
