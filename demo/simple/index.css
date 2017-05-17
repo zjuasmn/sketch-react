@@ -17,11 +17,11 @@ body{
 .header a {
     color: #666;
     text-decoration: none;
+    /*cursor: pointer;*/
 }
 
 .header a:hover {
     color: #333;
-    cursor: pointer;
 }
 
 .flex {

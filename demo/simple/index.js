@@ -15,15 +15,15 @@ class Header extends React.PureComponent {
   render() {
     let {file, filename, onSelectFile} = this.props;
     return <div className="header">
-      <a className="title" onClick={() => onSelectFile()}>Sketch React</a>
-      <div className="flex"/>
+      <a className="title" onClick={() => onSelectFile()} href="javascript:">Sketch React</a>
+      
       {
         file && <a className="filename" onClick={this.onClickTitle}>
           {filename.replace(/\.sketch$/, '')}
           <input type="file" onChange={onSelectFile} accept=".sketch" hidden ref={this.gao}/>
         </a>
       }
-      <div className="flex"/>
+      {!file && <div className="flex"/>}
       <div className="actions">
         <a href="https://github.com/zjuasmn/sketch-react" className="icon-link">
           <svg className="icon" width="16px" height="16px" viewBox="0 0 16 16">
@@ -83,12 +83,12 @@ class App extends React.Component {
           <Document blob={file} style={{height: `calc(100% - 32px)`}}/>
           : <div className="home">
           <div className="upload-area"
-             onDragEnter={(e)=>{
-               e.preventDefault();
-             }}
-             onDragLeave={(e)=>{
-               e.preventDefault();
-             }}
+               onDragEnter={(e) => {
+                 e.preventDefault();
+               }}
+               onDragLeave={(e) => {
+                 e.preventDefault();
+               }}
                onDragOver={(e) => {
                  e.preventDefault();
                }}
