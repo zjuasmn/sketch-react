@@ -69,7 +69,8 @@ export default class Document extends React.PureComponent {
   }
   
   render() {
-    return <Resolve promise={this.document$} name="model"
+    let {blob,...props} = this.props;
+    return <Resolve promise={this.document$} name="model" {...props}
       pending={<div className={styles['document-loading']}/>}
                     rejected={errorPage}
     >

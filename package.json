@@ -35,6 +35,7 @@
     "prop-types": "^15.5.8",
     "react": "^15.5.4",
     "react-utilities": "^0.5.4",
+    "react-zeroclipboard": "^3.2.3",
     "sketch-constants": "^1.0.2"
   }
 }
