@@ -37,6 +37,9 @@ function _parse(o, $objects) {
         return ret;
       }
       if (o['$class']['$classname'] === 'NSColor') {
+        if (!('NSRGB' in o)) {
+          return {red: 0, green: 0, blue: 0, alpha: 1};
+        }
         let [red, green, blue, alpha] = o['NSRGB'].substr(0, o['NSRGB'].length - 1).split(' ').map(Number);
         return {red, green, blue, alpha};
       }

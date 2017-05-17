@@ -4,6 +4,7 @@ import React from "react";
 export default class PageSelector extends React.PureComponent {
   render() {
     let {model, selectedPage, onSelect, style, ...props} = this.props;
+    let {pagesAndArtboards} = model;
     return (
       <div style={{
         background: '#ececec',
@@ -20,7 +21,7 @@ export default class PageSelector extends React.PureComponent {
         </div>
         <div>
           {
-            Object.keys(model).reverse().map((id, i) =>
+            Object.keys(pagesAndArtboards).reverse().map((id, i) =>
               <div key={id} style={ id === selectedPage ? {
                 paddingLeft: 32,
                 color: 'white',
@@ -29,7 +30,7 @@ export default class PageSelector extends React.PureComponent {
                 paddingLeft: 32,
                 background: i % 2 === 1 ? '#f0f0f0' : undefined,
                 
-              }} onClick={() => onSelect(id)}>{model[id].name}</div>
+              }} onClick={() => onSelect(id)}>{pagesAndArtboards[id].name}</div>
             )
           }
         </div>

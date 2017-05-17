@@ -24,6 +24,7 @@ export default class Bitmap extends React.Component {
       width: frame.width,
       top: frame.y,
       left: frame.x,
+      ...model.style.toStyle(model),
     }} src={this.state.url}
                 {...props}
     />

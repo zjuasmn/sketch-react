@@ -45,7 +45,7 @@ export default class Group extends React.Component {
     let mask = model.layers[0];
     return (
       <div style={{
-        position: 'absolute',
+        ...style,
         overflow: 'hidden',
         height: mask.frame.height,
         width: mask.frame.width,

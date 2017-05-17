@@ -7,8 +7,38 @@
     height 100%
     min-height 300px
     border-top 1px solid #B8B8B8
+    font-family "Helvetica Neue", Helvetica, Arial, sans-serif
+  .document-error
+    composes document
+    background #f2f2f2
+    color #777
+    font-size 16px
+    line-height 1.6
+    text-align center
+    display block
+    h1
+      max-width 480px
+      margin 64px auto 0
+      text-align center
+      font-size 18px
+      font-weight bold
+    p
+      max-width 480px
+      margin 16px auto
+    a
+      text-align none
+      color #3884ff
+
+  .document-loading
+    composes document
+    composes: global(spin)
+    background #f2f2f2
+    align-items center
+    justify-content center
+
   .sidebar-selector
     width 240px
+    height 100%
     box-sizing border-box
     flex none
     border-right 1px solid #B8B8B8
@@ -142,3 +172,25 @@
       padding 8px;
       font-family: monospace;
       color: #666;
+
+.spin
+  &::before
+    content ''
+    display block
+    width 32px
+    height 32px
+    border-radius 50%
+    border-color #3884ff #3884ff transparent transparent
+    border-style solid
+    border-width 4px
+    animation .5s linear 0s infinite normal none running rotate
+
+@keyframes rotate {
+  from {
+    transform: rotate(0)
+  }
+
+  to {
+    transform: rotate(360deg)
+  }
+}

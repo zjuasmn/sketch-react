@@ -885,7 +885,7 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-big-integer@^1.6.22, big-integer@^1.6.7:
+big-integer@^1.6.22:
   version "1.6.22"
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.22.tgz#487c95fce886022ea48ff5f19e388932df46dd2e"
 
@@ -924,12 +924,6 @@ boom@2.x.x:
 bowser@^1.6.0:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/bowser/-/bowser-1.6.1.tgz#9157e9498f456e937173a2918f3b2161e5353eb3"
-
-bplist-parser@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/bplist-parser/-/bplist-parser-0.1.1.tgz#d60d5dcc20cba6dc7e1f299b35d3e1f95dafbae6"
-  dependencies:
-    big-integer "^1.6.7"
 
 brace-expansion@^1.1.7:
   version "1.1.7"
@@ -3311,7 +3305,14 @@ promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-prop-types@^15.5.4, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@~15.5.7:
+prop-types@^15.5.10, prop-types@^15.5.4, prop-types@~15.5.7:
+  version "15.5.10"
+  resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.5.10.tgz#2797dfc3126182e3a95e3dfbb2e893ddd7456154"
+  dependencies:
+    fbjs "^0.8.9"
+    loose-envify "^1.3.1"
+
+prop-types@^15.5.7, prop-types@^15.5.8:
   version "15.5.9"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.5.9.tgz#d478eef0e761396942f70c78e772f76e8be747c9"
   dependencies:
@@ -3532,12 +3533,13 @@ react-style-proptype@^3.0.0:
   dependencies:
     prop-types "^15.5.4"
 
-react-utilities@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/react-utilities/-/react-utilities-0.5.2.tgz#475c60e802e31595b96b5df6867060ecd694138c"
+react-utilities@^0.5.4:
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/react-utilities/-/react-utilities-0.5.4.tgz#929c8815d05409d34768f15f339c1b41010b5f31"
   dependencies:
     debug "^2.6.1"
     is-plain-object "^2.0.1"
+    prop-types "^15.5.10"
     react "^15.0.0"
 
 react@^15.0.0, react@^15.5.4:

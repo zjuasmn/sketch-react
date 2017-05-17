@@ -13,13 +13,13 @@ class Header extends React.PureComponent {
   };
   
   render() {
-    let {file, onSelectFile} = this.props;
+    let {file, filename, onSelectFile} = this.props;
     return <div className="header">
       <a className="title" onClick={() => onSelectFile()}>Sketch React</a>
       <div className="flex"/>
       {
         file && <a className="filename" onClick={this.onClickTitle}>
-          {file.name.replace(/\.sketch$/, '')}
+          {filename.replace(/\.sketch$/, '')}
           <input type="file" onChange={onSelectFile} accept=".sketch" hidden ref={this.gao}/>
         </a>
       }
@@ -35,9 +35,13 @@ class Header extends React.PureComponent {
     </div>
   }
 }
-// const simpleFiles = {
-//    ''
-// }
+const simpleFiles = [
+  'https://zjuasmn.github.io/sketch-react/images/ui-video-simple-john-hansen.sketch',
+  'https://zjuasmn.github.io/sketch-react/images/Fitness%20App.sketch',
+];
+function getName(url) {
+  return decodeURIComponent(url.substring(url.lastIndexOf('/') + 1));
+}
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -46,11 +50,17 @@ class App extends React.Component {
   
   onSelectFile = (e) => {
     if (!e) {
-      return this.setState({file: null});
-    
+      return this.setState({file: null, filename: ''});
     }
-    if (e.target.files.length) {
-      this.setState({file: e.target.files[0]})
+    e.preventDefault();
+    let file;
+    if (e.dataTransfer) {
+      file = e.dataTransfer.files[0];
+    } else if (e.target.files.length) {
+      file = e.target.files[0];
+    }
+    if (file) {
+      this.setState({file, filename: file.name})
     }
   };
   onClickButton = () => {
@@ -59,28 +69,61 @@ class App extends React.Component {
   gao = (input) => {
     this.fileInput = input;
   };
+  selectFileFromURL = (url) => {
+    this.setState({file: fetch(url).then(r => r.blob()), filename: getName(url)})
+  };
   
   render() {
-    let {file} = this.state;
-  
+    let {file, filename} = this.state;
+    
     return <div style={{height: '100%'}}>
-      <Header onSelectFile={this.onSelectFile} file={file}/>
+      <Header onSelectFile={this.onSelectFile} file={file} filename={filename}/>
       {
         file ?
           <Document blob={file} style={{height: `calc(100% - 32px)`}}/>
           : <div className="home">
-          <div className="upload-area">
-            <a className="upload-button" onClick={this.onClickButton}>Select .sketch(v43+) file from computer<input
+          <div className="upload-area"
+             onDragEnter={(e)=>{
+               e.preventDefault();
+             }}
+             onDragLeave={(e)=>{
+               e.preventDefault();
+             }}
+               onDragOver={(e) => {
+                 e.preventDefault();
+               }}
+               onDrop={this.onSelectFile}
+            // onDropCapture={(e) => {
+            //   e.preventDefault();
+            //   console.log(e);
+            //   debugger
+            // }}
+          >
+            <div className="desc">Drop .sketch(v43+) file here</div>
+            <a className="upload-button" onClick={this.onClickButton}>Or select from computer<input
               type="file" onChange={this.onSelectFile} accept=".sketch" hidden ref={this.gao}/></a>
           </div>
           {/*<div>*/}
-          {/*<h2>Sample Files</h2>*/}
-          {/*<div>*/}
-          {/*<a href=""*/}
+          {/*<a className="upload-button" onClick={() => {*/}
+          {/*let url = prompt(`Enter the file's URL`);*/}
+          {/*if (url) {*/}
+          {/*this.selectFileFromURL(url);*/}
+          {/*}*/}
+          {/*}}>parse .sketch file on web</a>*/}
           {/*</div>*/}
-          {/*</div>*/}
+          <div className="sample">
+            <h2 className="sample-header">Sample Files</h2>
+            <div>
+              {simpleFiles.map(url =>
+                <div key={url} className="sample-link">
+                  <a onClick={() => this.selectFileFromURL(url)}>{getName(url)}</a>
+                  {' ('}<a href={url}>raw</a>)
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      
+        
       }
     </div>
   }

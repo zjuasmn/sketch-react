@@ -16,15 +16,18 @@ export default class Page extends React.Component {
       }} {...props}>
         
         {children}
+        
         {model.layers.map(artboard => <div
-          key={'title-' + artboard['do_objectID']}
+          key={'title' + artboard['do_objectID']}
           style={{
             position: 'absolute',
             top: artboard.frame.y - 20,
             left: artboard.frame.x,
-            color: '#999',
+            color: artboard['_class'] === 'artboard' ? '#999' : '#8f44b7',
             fontSize: 12,
+            pointerEvents:'none',
           }}>{artboard.name}</div>)}
+      
       </div>);
   }
 }

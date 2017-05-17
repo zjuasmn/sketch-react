@@ -9,10 +9,77 @@ import PropTypes from "prop-types";
 import styles from "./Document.styl";
 import LayerIndicator from "./LayerIndicator";
 import LayerInfo from "./LayerInfo";
+import Resolve from 'react-utilities/Resolve'
+import {Document as DocumentClass} from '../../models'
+
+let errorPage = <div className={styles['document-error']}>
+  <h1>Cannot parse this file</h1>
+<p>If the file is from old-version sketch, open it with new version(v43 or newer) sketch and save to convert.</p>
+<p>If you find any issue, please {' '}<a href="https://github.com/zjuasmn/react-utilities/issues">feedback</a>
+{' '} to me. Thank you.</p></div>;
 
 export default class Document extends React.PureComponent {
   static propTypes = {
-    blob: PropTypes.instanceOf(Blob),
+    blob: PropTypes.oneOfType([
+      PropTypes.instanceOf(Blob),
+      PropTypes.instanceOf(Promise),
+    ])
+  };
+  
+  componentWillMount() {
+    this.document$ = this.loadBlob(this.props.blob);
+  }
+  
+  componentWillUnmount() {
+    clear();
+  }
+  
+  async loadBlob(blob) {
+    let zip = await JSZip.loadAsync(await blob);
+    let json = JSON.parse(await zip.file('document.json')
+      .async('string'));
+    let meta = JSON.parse(await zip.file('meta.json')
+      .async('string'));
+    let model = parse(json, zip);
+    for (let i = 0; i < model.pages.length; ++i) {
+      let page = model.pages[i] = await model.pages[i].getInstance();
+      
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (let layer of page.layers) {
+        minX = Math.min(minX, layer.frame.x);
+        minY = Math.min(minY, layer.frame.y);
+        maxX = Math.max(maxX, layer.frame.x + layer.frame.width);
+        maxY = Math.max(maxY, layer.frame.y + layer.frame.height);
+      }
+      minX -= 32;
+      minY -= 32;
+      maxX += 32;
+      maxY += 32;
+      for (let layer of page.layers) {
+        layer.frame.x -= minX;
+        layer.frame.y -= minY;
+      }
+      page.frame.x = 0;
+      page.frame.y = 0;
+      page.frame.width = maxX - minX;
+      page.frame.height = maxY - minY;
+    }
+    model.meta = meta;
+    return model;
+  }
+  
+  render() {
+    return <Resolve promise={this.document$} name="model"
+      pending={<div className={styles['document-loading']}/>}
+                    rejected={errorPage}
+    >
+      <DocumentViewer />
+    </Resolve>
+  }
+}
+class DocumentViewer extends React.PureComponent {
+  static propTypes = {
+    model: PropTypes.instanceOf(DocumentClass),
   };
   static childContextTypes = {
     onClick: PropTypes.func,
@@ -22,9 +89,9 @@ export default class Document extends React.PureComponent {
   
   constructor(props) {
     super(props);
+    this.state = {};
     this.layerStack = [];
-    this.init(props);
-    this.throttleSetState = this.setState;
+    this.model = this.props.model;
   }
   
   getChildContext() {
@@ -33,51 +100,6 @@ export default class Document extends React.PureComponent {
       onMouseEnter: this.onLayerEnter,
       onMouseLeave: this.onLayerLeave
     };
-  }
-  
-  componentWillUnmount() {
-    clear();
-  }
-  
-  async init(props) {
-    try {
-      this.state = {loading: true};
-      let zip = await JSZip.loadAsync(await props.blob);
-    
-      let json = JSON.parse(await zip.file('document.json')
-        .async('string'));
-      let meta = JSON.parse(await zip.file('meta.json')
-        .async('string'));
-      let model = parse(json, zip);
-      for (let i = 0; i < model.pages.length; ++i) {
-        let page = model.pages[i] = await model.pages[i].getInstance();
-      
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        for (let layer of page.layers) {
-          minX = Math.min(minX, layer.frame.x);
-          minY = Math.min(minY, layer.frame.y);
-          maxX = Math.max(maxX, layer.frame.x + layer.frame.width);
-          maxY = Math.max(maxY, layer.frame.y + layer.frame.height);
-        }
-        minX -= 32;
-        minY -= 32;
-        maxX += 32;
-        maxY += 32;
-        for (let layer of page.layers) {
-          layer.frame.x -= minX;
-          layer.frame.y -= minY;
-        }
-        page.frame.x = 0;
-        page.frame.y = 0;
-        page.frame.width = maxX - minX;
-        page.frame.height = maxY - minY;
-      }
-      this.zip = zip;
-      this.model = model;
-      this.setState({loading: false, selectedPage: model.pages[0], meta});
-    } catch (e) {
-      alert('fail!!');
-    }
   }
   
   selectPage = (pageID) => {
@@ -92,56 +114,56 @@ export default class Document extends React.PureComponent {
   };
   onLayerEnter = (layerID) => {
     this.layerStack.push(layerID);
-    this.throttleSetState({hoveredLayer: this.layerStack[this.layerStack.length - 1]});
+    this.setState({hoveredLayer: this.layerStack[this.layerStack.length - 1]});
   };
   onLayerLeave = (layerID) => {
     if (this.layerStack.length === 0 || layerID !== this.layerStack[this.layerStack.length - 1]) {
       console.error('cannot pop layer', this.layerStack, layerID);
     }
     this.layerStack.pop();
-    this.throttleSetState({hoveredLayer: this.layerStack[this.layerStack.length - 1]});
+    this.setState({hoveredLayer: this.layerStack[this.layerStack.length - 1]});
   };
   
+  componentWillMount() {
+    this.state = {selectedPage: this.props.model.pages[0]};
+  }
+  
   render() {
-    let {loading, selectedPage, meta, selectedLayer, hoveredLayer} = this.state;
-    let {blob, ...props} = this.props;
-    if (loading) {
-      return <div>Loading...</div>
-    } else {
-      return (
-        <div className={styles.document} {...props}>
-          <aside className={styles['sidebar-selector']}>
-            <PageSelector model={meta.pagesAndArtboards} onSelect={this.selectPage}
-                          selectedPage={selectedPage.do_objectID}
-                          style={{
-                            height: 27 * 5,
-                          }}
-            />
-            <LayerSelector model={selectedPage}
-                           selectedLayer={selectedLayer}
-              // hoveredLayer={hoveredLayer}
-                           onMouseEnter={this.onLayerEnter}
-                           onMouseLeave={this.onLayerLeave}
-                           onSelect={this.selectLayer}
-                           style={{
-                             height: `calc(100% - 135px)`,
-                           }}
-            />
-          </aside>
-          <div className={styles.main}>
-            <div className={styles.canvas} id="canvas" style={{
-              width: selectedPage.frame.width,
-              height: selectedPage.frame.height,
-            }}>
-              <Layer model={selectedPage}/>
-              <LayerIndicator selectedLayer={selectedLayer} hoveredLayer={hoveredLayer}/>
-            </div>
+    let {selectedPage, selectedLayer, hoveredLayer} = this.state;
+    let {model, ...props} = this.props;
+    
+    return (
+      <div className={styles.document} {...props}>
+        <aside className={styles['sidebar-selector']}>
+          <PageSelector model={model.meta}
+                        onSelect={this.selectPage}
+                        selectedPage={selectedPage.do_objectID}
+                        style={{height: 27 * 5,}}
+          />
+          <LayerSelector model={selectedPage}
+                         selectedLayer={selectedLayer}
+            // hoveredLayer={hoveredLayer}
+                         onMouseEnter={this.onLayerEnter}
+                         onMouseLeave={this.onLayerLeave}
+                         onSelect={this.selectLayer}
+                         style={{height: `calc(100% - 135px)`,}}
+          />
+        </aside>
+        < div className={styles.main}>
+          <div className={styles.canvas} id="canvas" style={{
+            width: selectedPage.frame.width,
+            height: selectedPage.frame.height,
+          }}>
+            <Layer model={selectedPage}/>
+            <LayerIndicator selectedLayer={selectedLayer} hoveredLayer={hoveredLayer}/>
           </div>
-          <aside className={styles['sidebar-info']}>
-            <LayerInfo layer={selectedLayer}/>
-          </aside>
         </div>
-      );
-    }
+        
+        <aside className={styles['sidebar-info']}>
+          <LayerInfo layer={selectedLayer}/>
+        </aside>
+      </div>
+    
+    );
   }
 }

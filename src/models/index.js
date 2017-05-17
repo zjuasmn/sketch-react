@@ -1,6 +1,6 @@
 import "babel-polyfill";
-import {BlendingMode} from "sketch-constants";
-import _ from "lodash";
+import {BlendingMode, CurvePointMode} from "sketch-constants";
+import kebabCase from "lodash/kebabCase";
 
 
 export class Page {
@@ -11,6 +11,38 @@ export class Artboard {
 }
 export class Rect {
   static _class = 'rect';
+  
+  set x(_x) {
+    this._x = _x;
+  }
+  
+  get x() {
+    return Math.round(this._x);
+  }
+  
+  set y(_y) {
+    this._y = _y;
+  }
+  
+  get y() {
+    return Math.round(this._y);
+  }
+  
+  set width(_width) {
+    this._width = _width;
+  }
+  
+  get width() {
+    return Math.round(this._width);
+  }
+  
+  set height(_height) {
+    this._height = _height;
+  }
+  
+  get height() {
+    return Math.round(this._height);
+  }
 }
 export class ShapeGroup {
   static _class = 'shapeGroup';
@@ -64,10 +96,7 @@ export class Style {
   static _class = 'style';
   
   toStyle(model = {}, isSvg = false) {
-    let ret = {boxSizing: `border-box`};
-    if (!model.isVisible) {
-      return {display: 'none'};
-    }
+    let ret = {};
     // if (this['fills']) {
     //   let fills = this['fills'].filter(fill => fill['isEnabled']).reverse();
     //   ret = {
@@ -84,9 +113,9 @@ export class Style {
         let path = model.layers[0].path;
         Object.assign(ret, {borderRadius: `${[0, 2, 1, 3].map(i => path.points[0]['cornerRadius'] + 'px').join(' ')}`});
       }
-      
     }
     if (isSvg) {
+      Object.assign(ret, {fillRule: 'evenodd'});
       if (!this['fills']) {
         Object.assign(ret, {fill: 'none'});
       } else {
@@ -98,18 +127,19 @@ export class Style {
       }
     }
     if (this['borders']) {
+      Object.assign(ret, {boxSizing: `border-box`});
       let borders = this['borders'];
-      let border = borders.filter(border => border.isEnabled)[0];
+      let border = borders.filter(border => border['isEnabled'])[0];
       if (border) {
         Object.assign(ret, border.toStyle(isSvg));
       }
     }
     let shadowList = [];
     if (this['shadows']) {
-      shadowList = shadowList.concat(this['shadows']);
+      shadowList = shadowList.concat(this['shadows'].filter(shadow => shadow['isEnabled']));
     }
     if (this['innerShadows']) {
-      shadowList = shadowList.concat(this['innerShadows']);
+      shadowList = shadowList.concat(this['innerShadows'].filter(shadow => shadow['isEnabled']));
     }
     if (shadowList.length) {
       Object.assign(ret, {boxShadow: shadowList.map(s => s.toString()).join(', ')});
@@ -125,16 +155,37 @@ export class Style {
     if (!model.isVisible) {
       Object.assign(ret, {display: 'none'});
     }
-    if (model.rotation) {
-      Object.assign(ret, {transform: `rotate(${-model.rotation}deg)`});
+    if (model.rotation || model.isFlippedHorizontal || model.isFlippedVertical) {
+      let transformString = '';
+      if (model.rotation) {
+        transformString += ` rotate(${-model.rotation}deg)`
+      }
+      if (model.isFlippedHorizontal || model.isFlippedVertical) {
+        let a = model.isFlippedHorizontal ? -1 : 1;
+        let d = model.isFlippedVertical ? -1 : 1;
+        transformString += ` matrix(${a}, 0, 0, ${d}, 0, 0)`
+      }
+      Object.assign(ret, {transform: transformString});
     }
     if (this['contextSettings']) {
-      Object.assign(ret, {opacity: this['contextSettings'].opacity});
+      if (this['contextSettings'].opacity !== 1) {
+        Object.assign(ret, {opacity: this['contextSettings'].opacity});
+      }
+      if (this['contextSettings'].blendMode !== BlendingMode.Normal) {
+        Object.assign(ret, {mixBlendMode: getBlendModeString(this['contextSettings'].blendMode)});
+      }
     }
     return ret;
   }
 }
-
+function getBlendModeString(blendMode) {
+  for (let mode in BlendingMode) {
+    if (BlendingMode[mode] === blendMode) {
+      return kebabCase(mode);
+    }
+  }
+  return '';
+}
 export class GraphicsContextSettings {
   static _class = 'graphicsContextSettings';
 }
@@ -144,14 +195,9 @@ export class Fill {
   get blendMode() {
     let context = this.contextSettings;
     if (!context) {
-      context = {blendMode: 0};
+      context = {blendMode: BlendingMode.Normal};
     }
-    for (let mode in BlendingMode) {
-      if (BlendingMode[mode] === context.blendMode) {
-        return _.kebabCase(mode);
-      }
-    }
-    return null;
+    return getBlendModeString(context.blendMode);
   }
   
   toString() {
@@ -243,19 +289,39 @@ export class MSJSONFileReference {
     }
   }
 }
-
+const Alignment = {
+  Left: 4,
+  Center: 2,
+  Right: 1,
+  Justify: 3,
+};
+const AlignmentString = {
+  4: 'left',
+  2: 'center',
+  1: 'right',
+  3: 'justify',
+};
 export class TextStyle {
   static _class = 'textStyle';
   
   toStyle(model) {
+    let style = {};
     // window.model = model;
     // if(model.attributedString.archivedAttributedString.NSAttributes instanceof Array){
     // debugger;
     // }
+    if (this.encodedAttributes.NSParagraphStyle.NSAlignment !== Alignment.Left) {
+      Object.assign(style, {textAlign: AlignmentString[this.encodedAttributes.NSParagraphStyle.NSAlignment]});
+    }
+    if (model.textBehaviour) {
+      Object.assign(style, {width: model.frame.width});
+    } else {
+      Object.assign(style, {whiteSpace: 'nowrap'});
+    }
     return {
       fontSize: this.encodedAttributes.MSAttributedStringFontAttribute.NSFontDescriptorAttributes.NSFontSizeAttribute,
       color: Color.prototype.toString.call(this.encodedAttributes.NSColor),
-      width:model.textBehaviour === 1 ? model.frame.width : undefined,
+      ...style,
     };
   }
   
@@ -268,8 +334,8 @@ export class ShapePath {
   
   getXY(s) {
     let {x, y} = s2p(s);
-    x = this.frame.x + this.frame.width * x;
-    y = this.frame.y + this.frame.height * y;
+    x = this.frame._x + this.frame._width * x;
+    y = this.frame._y + this.frame._height * y;
     return {x, y}
   }
   
