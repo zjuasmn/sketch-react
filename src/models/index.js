@@ -54,12 +54,22 @@ export class Group {
 function f2i(f) {
   return Math.round(f * 255) || 0;
 }
+function f2x(f) {
+  let s = (Math.round(f * 255) || 0).toString(16);
+  if (s.length === 1) {
+    s = '0' + s;
+  }
+  return s;
+}
 export class Color {
   static _class = 'color';
   
   toString(context) {
     let opacity = context && 'opacity' in context ? context['opacity'] : 1;
     let alpha = this.alpha === undefined ? 1 : this.alpha;
+    if (alpha === 1) {
+      return `#${f2x(this.red)}${f2x(this.green)}${f2x(this.blue)}`
+    }
     return `rgba(${f2i(this.red)},${f2i(this.green)},${f2i(this.blue)},${alpha * opacity})`
   }
 }
