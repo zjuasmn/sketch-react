@@ -1,5 +1,5 @@
 import "babel-polyfill";
-import {BlendingMode, CurvePointMode} from "sketch-constants";
+import {BlendingMode, CurvePointMode,FillType} from "sketch-constants";
 import kebabCase from "lodash/kebabCase";
 
 
@@ -46,6 +46,19 @@ export class Rect {
 }
 export class ShapeGroup {
   static _class = 'shapeGroup';
+  
+  isSimple() {
+    let {layers} = this;
+    if (layers && layers.length === 1 && !layers[0]['edited']) {
+      if (layers[0] instanceof Oval && this.frame.width === this.frame.height) {
+        return true;
+      }
+      if (layers[0] instanceof Rectangle) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 export class Group {
   static _class = 'group';
@@ -107,54 +120,7 @@ export class Style {
   
   toStyle(model = {}, isSvg = false) {
     let ret = {};
-    // if (this['fills']) {
-    //   let fills = this['fills'].filter(fill => fill['isEnabled']).reverse();
-    //   ret = {
-    //     ...ret, background: fills.map(fill => fill.toString()).join(', '),
-    //     backgroundBlendMode: fills.map(fill => fill.blendMode).join(','),
-    //     mixBlendMode: fills.length ? fills[fills.length - 1].blendMode : 'normal',
-    //   }
-    // }
-    if (model instanceof ShapeGroup && model.layers && model.layers.length === 1 && !model.layers[0]['edited']) {
-      if (model.layers[0] instanceof Oval && model.frame.width === model.frame.height) {
-        Object.assign(ret, {borderRadius: '50%'});
-      }
-      if (model.layers[0] instanceof Rectangle) {
-        let path = model.layers[0].path;
-        Object.assign(ret, {borderRadius: `${[0, 2, 1, 3].map(i => path.points[0]['cornerRadius'] + 'px').join(' ')}`});
-      }
-    }
-    if (isSvg) {
-      Object.assign(ret, {fillRule: 'evenodd'});
-      if (!this['fills']) {
-        Object.assign(ret, {fill: 'none'});
-      } else {
-        Object.assign(ret, {fill: 'none'});
-        let fills = this['fills'].filter(fill => fill['isEnabled']).reverse();
-        if (fills.length) {
-          Object.assign(ret, {fill: fills[0].color.toString()});
-        }
-      }
-    }
-    if (this['borders']) {
-      Object.assign(ret, {boxSizing: `border-box`});
-      let borders = this['borders'];
-      let border = borders.filter(border => border['isEnabled'])[0];
-      if (border) {
-        Object.assign(ret, border.toStyle(isSvg));
-      }
-    }
-    let shadowList = [];
-    if (this['shadows']) {
-      shadowList = shadowList.concat(this['shadows'].filter(shadow => shadow['isEnabled']));
-    }
-    if (this['innerShadows']) {
-      shadowList = shadowList.concat(this['innerShadows'].filter(shadow => shadow['isEnabled']));
-    }
-    if (shadowList.length) {
-      Object.assign(ret, {boxShadow: shadowList.map(s => s.toString()).join(', ')});
-    }
-    
+    // Lock, ClickThrough
     if (model.isLocked) {
       Object.assign(ret, {pointerEvent: 'none'});
     } else {
@@ -162,9 +128,11 @@ export class Style {
         Object.assign(ret, {pointerEvent: 'auto'});
       }
     }
+    // Visible
     if (!model.isVisible) {
       Object.assign(ret, {display: 'none'});
     }
+    // Rotation, FlippedHorizontal, FlippedVertical
     if (model.rotation || model.isFlippedHorizontal || model.isFlippedVertical) {
       let transformString = '';
       if (model.rotation) {
@@ -177,12 +145,63 @@ export class Style {
       }
       Object.assign(ret, {transform: transformString});
     }
+    if (this['borders']) { // Only accept first border
+      let borders = this['borders'];
+      Object.assign(ret, {boxSizing: `border-box`});
+      let border = borders.filter(border => border['isEnabled']).reverse()[0];
+      if (border) {
+        Object.assign(ret, border.toStyle(isSvg));
+      }
+    }
+    let hasContextStyle = false;
     if (this['contextSettings']) {
-      if (this['contextSettings'].opacity !== 1) {
+      let {opacity, blendMode} = this['contextSettings'];
+      if (opacity !== 1) {
+        hasContextStyle = true;
         Object.assign(ret, {opacity: this['contextSettings'].opacity});
       }
-      if (this['contextSettings'].blendMode !== BlendingMode.Normal) {
+      if (blendMode !== BlendingMode.Normal) {
+        hasContextStyle = true;
         Object.assign(ret, {mixBlendMode: getBlendModeString(this['contextSettings'].blendMode)});
+      }
+    }
+    // Complex shape
+    if (isSvg) {
+      Object.assign(ret, {fillRule: 'evenodd', fill: 'none'});
+      if (this['fills']) {
+        let fills = this['fills'].filter(fill => fill['isEnabled']).reverse();
+        if (fills.length) {
+          Object.assign(ret, {fill: fills[0].color.toString()});
+        }
+      }
+      return ret;
+    }
+    // Simple shape
+    if (model instanceof ShapeGroup && model.isSimple()) {
+      if (model.layers[0] instanceof Oval) {
+        Object.assign(ret, {borderRadius: '50%'});
+      }
+      if (model.layers[0] instanceof Rectangle) {
+        let path = model.layers[0].path;
+        Object.assign(ret, {borderRadius: `${[0, 2, 1, 3].map(i => path.points[0]['cornerRadius'] + 'px').join(' ')}`});
+      }
+    }
+    // Shadow, innerShadow
+    let shadowList = [];
+    if (this['shadows']) {
+      shadowList = shadowList.concat(this['shadows'].filter(shadow => shadow['isEnabled']));
+    }
+    if (this['innerShadows']) {
+      shadowList = shadowList.concat(this['innerShadows'].filter(shadow => shadow['isEnabled']));
+    }
+    if (shadowList.length) {
+      Object.assign(ret, {boxShadow: shadowList.map(s => s.toString()).join(', ')});
+    }
+    // Fills (simple)
+    if (model instanceof ShapeGroup && !hasContextStyle && this['fills']) {
+      let fills = this['fills'].filter(fill => fill['isEnabled']);
+      if (fills.length && fills.every(fill => fill.blendMode === getBlendModeString(BlendingMode.Normal))) {
+        Object.assign(ret, {background: fills.map(fill => fill.toString(model)).join(', ')})
       }
     }
     return ret;
@@ -203,20 +222,20 @@ export class Fill {
   static _class = 'fill';
   
   get blendMode() {
-    let context = this.contextSettings;
+    let context = this['contextSettings'];
     if (!context) {
       context = {blendMode: BlendingMode.Normal};
     }
     return getBlendModeString(context.blendMode);
   }
   
-  toString() {
+  toString(model) {
     switch (this.fillType) {
-      case 0: // flat color
+      case FillType.Solid: // flat color
         let c = this.color.toString();
         return `linear-gradient(0deg, ${c},${c})`;
-      case 1:// gradient
-        return this.gradient.toString();
+      case FillType.Gradient:// gradient
+        return this.gradient.toString(model);
       default:
         return '';
     }
@@ -224,9 +243,9 @@ export class Fill {
   
   toStyle(model) {
     switch (this.fillType) {
-      case 0: // flat color
+      case FillType.Solid: // flat color
         return {background: this.color.toString(), mixBlendMode: this.blendMode};
-      case 1:// gradient
+      case FillType.Gradient:// gradient
         return {background: this.gradient.toString(model), mixBlendMode: this.blendMode};
       default:
         return {};

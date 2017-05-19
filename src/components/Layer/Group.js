@@ -18,6 +18,13 @@ function isMaskGroup(model) {
   }
   return false;
 }
+function isColumnGroup(model){
+  let layers = model.layers;
+  for (let layer of layers){
+  
+  }
+}
+
 export default class Group extends React.Component {
   constructor(props) {
     super(props);
