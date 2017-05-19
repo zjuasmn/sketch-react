@@ -122,19 +122,23 @@ export default class LayerIndicator extends React.PureComponent {
             top: o.top - r.top,
             borderWidth: `0 1px`
           }}/>
+          { (r && !b || selectedLayer === hoveredLayer) &&
           <div className={styles['frame-note']} style={{
             top: -10,
             left: '50%',
           }}>{`${Math.round(selectedmodel.frame.width)}px`}
           </div>
+          }
+          { (r && !b || selectedLayer === hoveredLayer) &&
           <div className={styles['frame-note']} style={{
             left: r.width + 2,
             top: '50%',
             transform: 'translateY(-50%)'
           }}>{`${Math.round(selectedmodel.frame.height)}px`}
           </div>
+          }
         </div>}
-
+      
       </div>
     );
     

@@ -1,5 +1,5 @@
 import React from "react";
-
+import {BooleanOperation} from 'sketch-constants'
 
 export default class ShapeGroup extends React.Component {
   constructor(props) {
@@ -17,7 +17,6 @@ export default class ShapeGroup extends React.Component {
         width: frame.width,
         top: frame.y,
         left: frame.x,
-        overflow: 'hidden',
         ...style,
       }}
                   {...props}
@@ -34,24 +33,31 @@ export default class ShapeGroup extends React.Component {
           />)
       }</div>
     } else {
+      let ds = [];
       let d = '';
       for (let layer of model.layers) {
         if (layer['isVisible']) {
+          if (layer['booleanOperation'] === BooleanOperation.Union) {
+            ds.push(d);
+            d = '';
+          }
           d += layer.toD();
         }
       }
-      return <svg style={{
-        position: 'absolute',
-        height: frame.height,
-        width: frame.width,
-        top: frame.y,
-        left: frame.x,
-        ...model.style.toStyle(model, true),
-      }}
-                  {...props}
+      ds.push(d);
+      return <svg
+        style={{
+          position: 'absolute',
+          height: frame.height,
+          width: frame.width,
+          top: frame.y,
+          left: frame.x,
+          ...model.style.toStyle(model, true),
+        }}
+        {...props}
       >
         <g>
-          <path d={d}/>
+          {ds.map((d, i) => <path key={i} d={d}/>)}
         </g>
       </svg>;
     }

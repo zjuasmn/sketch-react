@@ -105,11 +105,12 @@ export default class Layer extends React.PureComponent {
     if (Comp === SymbolInstance) {
       layers = getSymbolById(model['symbolID']).layers;
     }
-    return <Comp {...props} id={model.do_objectID}
+    return <Comp id={model.do_objectID}
                  model={model}
                  onClick={this.onClick}
                  onMouseEnter={this.onMouseEnter}
                  onMouseLeave={this.onMouseLeave}
+                 {...props}
     >
       {layers && layers.map(layer => <Layer key={layer['do_objectID']} model={layer}
                                             inSymbol={!!inSymbol || Comp === SymbolInstance}/>)}
