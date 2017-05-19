@@ -1,14 +1,12 @@
 import "babel-polyfill";
-import {BlendingMode, CurvePointMode,FillType} from "sketch-constants";
+import {BlendingMode, CurvePointMode, FillType} from "sketch-constants";
 import kebabCase from "lodash/kebabCase";
 
 
 export class Page {
   static _class = 'page';
 }
-export class Artboard {
-  static _class = 'artboard';
-}
+
 export class Rect {
   static _class = 'rect';
   
@@ -62,11 +60,134 @@ export class ShapeGroup {
 }
 export class Group {
   static _class = 'group';
+  
+  
+  wrapperFrame(layers) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let layer of layers) {
+      minX = Math.min(minX, layer.frame.x);
+      minY = Math.min(minY, layer.frame.y);
+      maxX = Math.max(maxX, layer.frame.x + layer.frame.width);
+      maxY = Math.max(maxY, layer.frame.y + layer.frame.height);
+    }
+    minX = Math.max(minX, 0);
+    maxX = Math.min(maxX, this.frame.width);
+    minY = Math.max(minY, 0);
+    maxY = Math.min(maxY, this.frame.height);
+    
+    return {x: minX, y: minY, width: maxX - minX, height: maxY - minY};
+  }
+  
+  getLayoutStyles() {
+    let {layers} = this;
+    
+    let visibleLayers = layers.filter(layer => layer.isVisible);
+    if (!visibleLayers.length) {
+      return {};
+    }
+    let ret = {[this['do_objectID']]: {}};
+    visibleLayers.forEach(layer => {
+      ret[layer['do_objectID']] = {};
+    });
+    // single layer
+    if (visibleLayers.length === 1) {
+      return {
+        [visibleLayers[0]['do_objectID']]: {
+          position: 'relative',
+          left: undefined,
+          top: undefined,
+          height: '100%',
+          width: undefined,
+        }
+      };
+    }
+    // check bg layer
+    let {y, x, width, height} = visibleLayers[0].frame;
+    
+    let hasBgLayer = false;
+    if (y === 0 && x === 0 && width === this.frame.width && height === this.frame.height) {
+      hasBgLayer = true;
+    }
+    if (hasBgLayer) {
+      ret[visibleLayers[0]['do_objectID']] = {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        width: '100%',
+        zIndex: 0,
+      };
+      visibleLayers.splice(0, 1);
+    }
+    // for column layout
+    // if (this['do_objectID'] === "9FFA94D8-633C-44A0-9DDA-F8B2A2EE970C") {
+    //   debugger
+    // }
+    let innerFrame = this.wrapperFrame(visibleLayers);
+    
+    
+    if (innerFrame.x !== 0 || innerFrame.y !== 0 || innerFrame.width !== this.frame.width || innerFrame.height !== this.frame.height) {
+      
+      Object.assign(ret[this['do_objectID']], {
+        boxSizing: 'border-box',
+        padding: `${innerFrame.y}px ${this.frame.width - innerFrame.width - innerFrame.x}px ${this.frame.height - innerFrame.height - innerFrame.y}px ${innerFrame.x}px`,
+      });
+    }
+    visibleLayers.sort((a, b) => a.frame.y - b.frame.y);
+    let isColumn = visibleLayers.every((layer, i) => i === 0 || visibleLayers[i - 1].frame.y + visibleLayers[i - 1].frame.height <= visibleLayers[i].frame.y);
+    if (isColumn) {
+      visibleLayers.forEach((layer, i) => {
+        let style = ret[layer['do_objectID']];
+        Object.assign(style, {
+          position: 'relative',
+          left: undefined,
+          top: undefined,
+        });
+        let leftGap = layer.frame.x - innerFrame.x;
+        let rightGap = innerFrame.x + innerFrame.width - layer.frame.x - layer.frame.width;
+        if (leftGap === rightGap) {
+          if (leftGap !== 0) {
+            Object.assign(style, {
+              marginLeft: 'auto',
+              marginHeight: 'auto',
+            });
+          } else {
+            Object.assign(style, {
+              width: undefined,
+            });
+          }
+        } else {
+          if (leftGap) {
+            Object.assign(style, {
+              marginLeft: leftGap,
+            });
+          }
+        }
+        if (i >= 1) {
+          let topGap = layer.frame.y - visibleLayers[i - 1].frame.y - visibleLayers[i - 1].frame.height;
+          Object.assign(style, {
+            marginTop: topGap ? topGap : undefined,
+          });
+        }
+      });
+      return ret;
+    }
+    
+    // TODO: row layout
+    // TODO: grid layout
+    return ret;
+  }
 }
-
+export class Artboard extends Group {
+  static _class = 'artboard';
+}
+export class SymbolMaster extends Artboard {
+  static _class = 'symbolMaster';
+}
 function f2i(f) {
   return Math.round(f * 255) || 0;
 }
+
 function f2x(f) {
   let s = (Math.round(f * 255) || 0).toString(16);
   if (s.length === 1) {
@@ -74,6 +195,7 @@ function f2x(f) {
   }
   return s;
 }
+
 export class Color {
   static _class = 'color';
   
@@ -285,9 +407,7 @@ export class Border {
   }
 }
 
-export class SymbolMaster {
-  static _class = 'symbolMaster';
-}
+
 export class SymbolInstance {
   static _class = 'symbolInstance';
 }

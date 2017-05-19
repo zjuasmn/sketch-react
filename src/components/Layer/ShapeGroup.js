@@ -2,24 +2,25 @@ import React from "react";
 import {BooleanOperation} from 'sketch-constants'
 
 export default class ShapeGroup extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   
   render() {
-    let {model, children, ...props} = this.props;
+    let {model, children, style, ...props} = this.props;
     let {frame} = model;
     if (model.isSimple()) {
-      let style = model.style.toStyle(model);
-      return <div style={{
-        position: 'absolute',
-        height: frame.height,
-        width: frame.width,
-        top: frame.y,
-        left: frame.x,
-        ...style,
-      }}
-                  {...props}
+      style = {
+        ...model.style.toStyle(model),
+        ...style
+      };
+      return <div
+        style={{
+          position: 'absolute',
+          height: frame.height,
+          width: frame.width,
+          top: frame.y,
+          left: frame.x,
+          ...style,
+        }}
+        {...props}
       >{
         !('background' in style) && model.style['fills'] && model.style['fills']
           .filter(fill => fill['isEnabled'])
@@ -53,6 +54,7 @@ export default class ShapeGroup extends React.Component {
           top: frame.y,
           left: frame.x,
           ...model.style.toStyle(model, true),
+          style,
         }}
         {...props}
       >

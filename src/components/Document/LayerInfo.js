@@ -30,7 +30,7 @@ export default class LayerInfo extends React.Component {
       let o = _o.cloneNode();
       o.innerHTML = _o.innerHTML;
       removeIds(o);
-      o.style.cssText += ';position:relative;top:0;left:0';
+      o.style.cssText = o.style.cssText.replace(/top:[^;]*;/,'').replace(/left:[^;]*;/,'');
       let ratio = _o.clientWidth > 208 ? 208 / _o.clientWidth : 1;
       
       return <div className={styles['info']}>

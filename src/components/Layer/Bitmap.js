@@ -15,18 +15,20 @@ export default class Bitmap extends React.Component {
   }
   
   render() {
-    let {model, ...props} = this.props;
+    let {model, style, ...props} = this.props;
     let {frame} = model;
-    return <img style={{
-      display: 'block',
-      position: 'absolute',
-      height: frame.height,
-      width: frame.width,
-      top: frame.y,
-      left: frame.x,
-      ...model.style.toStyle(model),
-    }} src={this.state.url}
-                {...props}
+    return <img
+      style={{
+        display: 'block',
+        position: 'absolute',
+        top: frame.y,
+        left: frame.x,
+        ...model.style.toStyle(model),
+        ...style,
+        height: frame.height,
+        width: frame.width,
+      }} {...props}
+      src={this.state.url}
     />
   }
 }

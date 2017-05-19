@@ -12,59 +12,26 @@ function isMaskGroup(model) {
   let mask = model.layers[0];
   return mask.isSimple && mask.isSimple();
 }
-function isColumnGroup(model) {
-  let layers = model.layers;
-  let arr = [];
-  for (let i = 0; i < layers.length; ++i) {
-    arr.push({
-      i,
-      top: layers[i].frame.top,
-      bottom: layers[i].frame.top + layers[i].frame.height,
-    });
-  }
-  arr.sort((a, b) => a.top - b.top);
-  let sameGap = true;
-  for (let i = 1; i < layers.length; ++i) {
-    if (arr[i - 1].bottom > arr[i].top) {
-      return false;
-    }
-    if (i > 1 && arr[i].top - arr[i - 1].bottom !== arr[i - 1].top - arr[i - 2].bottom) {
-      sameGap = false;
-    }
-  }
-  
-  for (let i = 0; i < layers.length; ++i) {
-    let layer = model.layers[arr[i].i];
-    let leftGap = layer.frame.left - model.frame.left;
-    let rightGap = model.frame.left + model.frame.width - layer.frame.left - layer.frame.width;
-    if (leftGap === rightGap) {
-      if (leftGap !== 0) {
-        arr[i].width = layer.frame.left + layer.frame.width;
-        arr[i].margin = '0px auto';
-      }
-    }
-  }
-  return true;
-}
 
 export default class Group extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  
   render() {
     let {model, children, style, ...props} = this.props;
     let {frame} = model;
     
+    
+    let layoutStyles = model.getLayoutStyles();
     style = {
-      ...style,
       position: 'absolute',
       height: frame.height,
       width: frame.width,
       top: frame.y,
       left: frame.x,
-      ...model.style.toStyle(model)
+      ...model.style.toStyle(model),
+      ...style,
+      ...layoutStyles[model['do_objectID']]
     };
+    
+    children = React.Children.map(children, child => React.cloneElement(child, {style: layoutStyles[child.props.model['do_objectID']]}))
     
     if (!isMaskGroup(model)) {
       return (
@@ -73,6 +40,8 @@ export default class Group extends React.Component {
         </div>);
     }
     let mask = model.layers[0];
+    let maskStyle = mask.style.toStyle(mask);
+    
     return (
       <div style={{
         ...style,
@@ -81,7 +50,7 @@ export default class Group extends React.Component {
         width: mask.frame.width,
         top: mask.frame.y + frame.y,
         left: mask.frame.x + frame.x,
-        borderRadius: mask.style.toStyle(mask).borderRadius,
+        borderRadius: maskStyle.borderRadius ? maskStyle.borderRadius : undefined,
       }} {...props}>{
         mask.frame.y || mask.frame.x ?
           <div style={{

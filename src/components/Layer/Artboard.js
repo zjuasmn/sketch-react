@@ -7,7 +7,7 @@ export default class Artboard extends Group {
     return <Group
       style={      {
         ...style,
-        background: this.props.model.backgroundColor.toString(),
+        background: this.props.model.hasBackgroundColor ? this.props.model.backgroundColor.toString() : undefined,
         boxShadow: 'rgba(0,0,0,0.3) 0 1px 4px 0',
         overflow: `hidden`,
       }} {...props} />;
