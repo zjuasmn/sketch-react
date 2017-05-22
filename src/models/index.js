@@ -85,9 +85,9 @@ export class Group {
     if (!visibleLayers.length) {
       return {};
     }
-    let ret = {[this['do_objectID']]: {}};
+    let styles = {[this['do_objectID']]: {}};
     visibleLayers.forEach(layer => {
-      ret[layer['do_objectID']] = {};
+      styles[layer['do_objectID']] = {};
     });
     // single layer
     if (visibleLayers.length === 1) {
@@ -109,13 +109,12 @@ export class Group {
       hasBgLayer = true;
     }
     if (hasBgLayer) {
-      ret[visibleLayers[0]['do_objectID']] = {
+      styles[visibleLayers[0]['do_objectID']] = {
         position: 'absolute',
         left: 0,
         top: 0,
         height: '100%',
         width: '100%',
-        zIndex: 0,
       };
       visibleLayers.splice(0, 1);
     }
@@ -124,20 +123,18 @@ export class Group {
     //   debugger
     // }
     let innerFrame = this.wrapperFrame(visibleLayers);
-    
-    
     if (innerFrame.x !== 0 || innerFrame.y !== 0 || innerFrame.width !== this.frame.width || innerFrame.height !== this.frame.height) {
-      
-      Object.assign(ret[this['do_objectID']], {
+      Object.assign(styles[this['do_objectID']], {
         boxSizing: 'border-box',
         padding: `${innerFrame.y}px ${this.frame.width - innerFrame.width - innerFrame.x}px ${this.frame.height - innerFrame.height - innerFrame.y}px ${innerFrame.x}px`,
       });
     }
-    visibleLayers.sort((a, b) => a.frame.y - b.frame.y);
+    // visibleLayers.sort((a, b) => a.frame.y - b.frame.y);
+    
     let isColumn = visibleLayers.every((layer, i) => i === 0 || visibleLayers[i - 1].frame.y + visibleLayers[i - 1].frame.height <= visibleLayers[i].frame.y);
     if (isColumn) {
       visibleLayers.forEach((layer, i) => {
-        let style = ret[layer['do_objectID']];
+        let style = styles[layer['do_objectID']];
         Object.assign(style, {
           position: 'relative',
           left: undefined,
@@ -170,12 +167,12 @@ export class Group {
           });
         }
       });
-      return ret;
+      return {styles};
     }
     
     // TODO: row layout
     // TODO: grid layout
-    return ret;
+    return {styles};
   }
 }
 export class Artboard extends Group {
@@ -478,6 +475,9 @@ export class TextStyle {
 export class Bitmap {
   static _class = 'bitmap';
 }
+function toS(a){
+  return a.toPrecision(6).replace(/\.?0+$/,'');
+}
 export class ShapePath {
   static _class = 'shapePath';
   
@@ -491,7 +491,7 @@ export class ShapePath {
   toD() {
     let path = this.path;
     let {x, y} = this.getXY(path.points[0].point);
-    let ret = `M${x},${y}`;
+    let ret = `M${toS(x)},${toS(y)}`;
     let n = path['isClosed'] ? path.points.length + 1 : path.points.length;
     for (let i = 1; i < n; ++i) {
       let now = i;
@@ -502,7 +502,11 @@ export class ShapePath {
       let {x: x1, y: y1} = this.getXY(path.points[prev].curveFrom);
       let {x: x2, y: y2} = this.getXY(path.points[now].curveTo);
       let {x, y} = this.getXY(path.points[now].point);
-      ret += `C${x1},${y1} ${x2},${y2} ${x},${y}`;
+      if (!path.points[now].hasCurveTo && !path.points[now].hasCurveFrom){
+        ret += `L${toS(x)},${toS(y)}`;
+      }else {
+        ret += `C${toS(x1)},${toS(y1)} ${toS(x2)},${toS(y2)} ${toS(x)},${toS(y)}`;
+      }
     }
     
     if (path['isClosed']) {

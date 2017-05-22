@@ -27,6 +27,9 @@ export default class ShapeGroup extends React.Component {
           .map((fill, i) => <div
             key={i}
             style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
               height: '100%',
               width: '100%',
               ...fill.toStyle(model),
@@ -58,9 +61,7 @@ export default class ShapeGroup extends React.Component {
         }}
         {...props}
       >
-        <g>
-          {ds.map((d, i) => <path key={i} d={d}/>)}
-        </g>
+        {ds.map((d, i) => <path key={i} d={d}/>)}
       </svg>;
     }
     

@@ -1,5 +1,8 @@
 import {expect} from 'chai'
 import {parseBase64} from '../utils/bplist-parser'
+import {getReactCode,cssText2obj,cssText2jsxCode,getFormattedJSXCode} from '../utils/JSX'
+import {JSDOM} from 'jsdom'
+
 describe('bplist-parser', () => {
   it('works', () => {
     let s = 'YnBsaXN0MDDUAQIDBAUGHyBYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKUHCBEVHFUkbnVsbNQJCgsMDQ4PEFVOU1JHQlxOU0NvbG9yU3BhY2VfEBJOU0N1c3RvbUNvbG9yU3BhY2VWJGNsYXNzTxAsMC42Mzc2NDg4MDk1IDAuMjAxNTQyMjEwNyAwLjIwMTU0MjIxMDcgMC42NQAQAYACgATSEgwTFFROU0lEEAGAA9IWFxgZWiRjbGFzc25hbWVYJGNsYXNzZXNcTlNDb2xvclNwYWNlohobXE5TQ29sb3JTcGFjZVhOU09iamVjdNIWFx0eV05TQ29sb3KiHRtfEA9OU0tleWVkQXJjaGl2ZXLRISJUcm9vdIABAAgAEQAaACMALQAyADcAPQBDAEwAUgBfAHQAewCqAKwArgCwALUAugC8AL4AwwDOANcA5ADnAPQA\/QECAQoBDQEfASIBJwAAAAAAAAIBAAAAAAAAACMAAAAAAAAAAAAAAAAAAAEp';
@@ -71,9 +74,45 @@ describe('bplist-parser', () => {
         }
       ]
     });
-  
+    
     s = "YnBsaXN0MDDUAQIDBAUG5+hYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoK8QOQcIERIYKywtLi8wMTI6PkVISU1VVldYWV03YXGBhYiKjZCTlpmcn6KlqKuusbW5ur7Cw8XX2Nvf41UkbnVsbNQJCgsMDQ4PEFhOU1N0cmluZ18QD05TQXR0cmlidXRlSW5mb1xOU0F0dHJpYnV0ZXNWJGNsYXNzgAKANoADgDhZCTEuIAkxMTFh0hMMFBdaTlMub2JqZWN0c6IVFoAEgDOANdMZEwwaIipXTlMua2V5c6cbHB0eHyAhgAWABoAHgAiACYAKgAunIyQlJiYoKYAMgBCAEYAZgBmAGoAxgDJXTlNDb2xvcl8QD05TU3RyaWtldGhyb3VnaF8QH01TQXR0cmlidXRlZFN0cmluZ0ZvbnRBdHRyaWJ1dGVfEChNU0F0dHJpYnV0ZWRTdHJpbmdUZXh0VHJhbnNmb3JtQXR0cmlidXRlW05TVW5kZXJsaW5lXxAQTlNQYXJhZ3JhcGhTdHlsZVZOU0tlcm7UMzQ1DDY3ODlVTlNSR0JcTlNDb2xvclNwYWNlXxASTlNDdXN0b21Db2xvclNwYWNlTxAsMC42Mzc2NDg4MDk1IDAuMjAxNTQyMjEwNyAwLjIwMTU0MjIxMDcgMC42NQAQAYANgA\/SOww8PVROU0lEEAGADtI\/QEFCWiRjbGFzc25hbWVYJGNsYXNzZXNcTlNDb2xvclNwYWNlokNEXE5TQ29sb3JTcGFjZVhOU09iamVjdNI\/QEZHV05TQ29sb3KiRkQQANIMSktMXxAaTlNGb250RGVzY3JpcHRvckF0dHJpYnV0ZXOAGIAS0xkTDE5RVKJPUIATgBSiUlOAFYAWgBdfEBNOU0ZvbnRTaXplQXR0cmlidXRlXxATTlNGb250TmFtZUF0dHJpYnV0ZSNAOAAAAAAAAFdBcmlhbE1U0j9AWltfEBNOU011dGFibGVEaWN0aW9uYXJ5o1pcRFxOU0RpY3Rpb25hcnnSP0BeX18QEE5TRm9udERlc2NyaXB0b3KiYERfEBBOU0ZvbnREZXNjcmlwdG9y2QxiY2RlZmdoaWprbG1ub21wN1pOU1RhYlN0b3BzXE5TVGV4dEJsb2Nrc18QD05TTWF4TGluZUhlaWdodF8QEk5TUGFyYWdyYXBoU3BhY2luZ1tOU1RleHRMaXN0c18QD05TTWluTGluZUhlaWdodFxOU0hlYWRJbmRlbnRbTlNBbGlnbm1lbnSAMIAbgCsjQAAAAAAAAAAjQAgAAAAAAACALCNAQgAAAAAAANITDHKArXN0dXZ3eHl6e3x9fn+AHIAegB+AIIAhgCKAI4AkgCWAJoAngCiAKYAq0gyCg4RaTlNMb2NhdGlvboAdI0AmAAAAAAAA0j9AhodZTlNUZXh0VGFiooZE0gyCg3CAHdIMgoOMgB0jQExTM0AAAADSDIKDj4AdI0BVQAAAAAAA0gyCg5KAHSNAXFZmYAAAANIMgoOVgB0jQGG2ZmAAAADSDIKDmIAdI0BlQZmgAAAA0gyCg5uAHSNAaMzMwAAAANIMgoOegB0jQGxYAAAAAADSDIKDoYAdI0Bv4zNAAAAA0gyCg6SAHSNAcbczQAAAANIMgoOngB0jQHN8zMAAAADSDIKDqoAdI0B1QmZgAAAA0j9ArK1XTlNBcnJheaKsRNITDK+AoIAq0hMMsoChs4AtgCrSDLa3uF5OU01hcmtlckZvcm1hdIAvgC5ae2RlY2ltYWx9LtI\/QLu8Wk5TVGV4dExpc3SivURaTlNUZXh0TGlzdNI\/QL\/AXxAXTlNNdXRhYmxlUGFyYWdyYXBoU3R5bGWjv8FEXxAQTlNQYXJhZ3JhcGhTdHlsZSM\/8AAAAAAAANI\/QFzEolxE0xkTDMbOKqcbHB0eHyAhgAWABoAHgAiACYAKgAunIyQlJiYo1YAMgBCAEYAZgBmAGoA0gDIQANI\/QNnaXk5TTXV0YWJsZUFycmF5o9msRNLcDN3eV05TLmRhdGFECAABAYA30j9A4OFdTlNNdXRhYmxlRGF0YaPg4kRWTlNEYXRh0j9A5OVfEBJOU0F0dHJpYnV0ZWRTdHJpbmei5kRfEBJOU0F0dHJpYnV0ZWRTdHJpbmdfEA9OU0tleWVkQXJjaGl2ZXLR6epUcm9vdIABAAgAEQAaACMALQAyADcAcwB5AIIAiwCdAKoAsQCzALUAtwC5AMMAyADTANYA2ADaANwA4wDrAPMA9QD3APkA+wD9AP8BAQEJAQsBDQEPAREBEwEVARcBGQEhATMBVQGAAYwBnwGmAa8BtQHCAdcCBgIIAgoCDAIRAhYCGAIaAh8CKgIzAkACQwJQAlkCXgJmAmkCawJwAo0CjwKRApgCmwKdAp8CogKkAqYCqAK+AtQC3QLlAuoDAAMEAxEDFgMpAywDPwNSA10DagN8A5EDnQOvA7wDyAPKA8wDzgPXA+AD4gPrA\/AD\/gQABAIEBAQGBAgECgQMBA4EEAQSBBQEFgQYBBoEHwQqBCwENQQ6BEQERwRMBE4EUwRVBF4EYwRlBG4EcwR1BH4EgwSFBI4EkwSVBJ4EowSlBK4EswS1BL4EwwTFBM4E0wTVBN4E4wTlBO4E8wT1BP4FAwULBQ4FEwUUBRYFGwUdBR8FIQUmBTUFNwU5BUQFSQVUBVcFYgVnBYEFhQWYBaEFpgWpBbAFuAW6BbwFvgXABcIFxAXGBc4F0AXSBdQF1gXYBdoF3AXeBeAF5QX0BfgF\/QYFBgoGDAYRBh8GIwYqBi8GRAZHBlwGbgZxBnYAAAAAAAACAQAAAAAAAADrAAAAAAAAAAAAAAAAAAAGeA==";
     let o = parseBase64(s);
     expect(o['NSString']).to.eql("\t1. \t111a");
   })
+});
+
+describe('cssText2obj', () => {
+  it('works', () => {
+    expect(cssText2obj('font-size : 14px; margin: 1px auto')).to.eql({
+      fontSize: '14px',
+      margin: '1px auto',
+    });
+  })
+});
+describe('cssText2jsxCode', () => {
+  it('works', () => {
+    expect(cssText2jsxCode('font-size : 14px; margin: 1px auto')).to.eql(`{fontSize: '14px', margin: '1px auto'}`);
+  })
+});
+describe('getFormattedJSXCode',()=>{
+  it('works',()=>{
+    let dom = new JSDOM(`<img id='img' src='123' style="height:100px;width:20px">`);
+    let img = dom.window.document.getElementById('img');
+    expect(getFormattedJSXCode(img)).to.eql(`<img src='123' style={{height: '100px', width: '20px'}}/>\n`);
+  });
+});
+describe('getReactCode',()=>{
+  it('works',()=>{
+    let dom = new JSDOM(`<img id='img' src='123' style="height:100px;width:20px">`);
+    let img = dom.window.document.getElementById('img');
+    expect(getReactCode(img)).to.eql(`import React from 'react'
+
+export default class MyComp extends React.Component {
+  render(){
+    return (
+      <img src='123' style={{height: '100px', width: '20px'}}/>
+    );
+  }
+}`);
+  });
 });

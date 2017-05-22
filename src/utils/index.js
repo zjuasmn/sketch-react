@@ -1,4 +1,5 @@
 import * as models from '../models/index'
+export * from './JSX'
 class Dummy {
   constructor(json) {
     setProps(this, json);
