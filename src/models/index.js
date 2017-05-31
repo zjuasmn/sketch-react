@@ -466,7 +466,7 @@ export class TextStyle {
     }
     return {
       fontSize: this.encodedAttributes.MSAttributedStringFontAttribute.NSFontDescriptorAttributes.NSFontSizeAttribute,
-      color: Color.prototype.toString.call(this.encodedAttributes.NSColor),
+      color: this.encodedAttributes.NSColor && Color.prototype.toString.call(this.encodedAttributes.NSColor),
       ...style,
     };
   }
