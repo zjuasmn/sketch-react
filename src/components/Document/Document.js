@@ -14,9 +14,9 @@ import {Document as DocumentClass} from '../../models'
 
 let errorPage = <div className={styles['document-error']}>
   <h1>Cannot parse this file</h1>
-<p>If the file is from old-version sketch, open it with new version(v43 or newer) sketch and save to convert.</p>
-<p>If you find any issue, please {' '}<a href="https://github.com/zjuasmn/react-utilities/issues">feedback</a>
-{' '} to me. Thank you.</p></div>;
+  <p>If the file is from old-version sketch, open it with new version(v43 or newer) sketch and save to convert.</p>
+  <p>If you find any issue, please {' '}<a href="https://github.com/zjuasmn/sketch-react/issues">feedback</a>
+    {' '} to me. Thank you.</p></div>;
 
 export default class Document extends React.PureComponent {
   static propTypes = {
@@ -69,10 +69,12 @@ export default class Document extends React.PureComponent {
   }
   
   render() {
-    let {blob,...props} = this.props;
-    return <Resolve promise={this.document$} name="model" {...props}
-      pending={<div className={styles['document-loading']}/>}
+    let {blob, ...props} = this.props;
+    return <Resolve promise={this.document$}
+                    name="model"
+                    pending={<div className={styles['document-loading']}/>}
                     rejected={errorPage}
+                    {...props}
     >
       <DocumentViewer />
     </Resolve>
@@ -110,13 +112,16 @@ class DocumentViewer extends React.PureComponent {
       }
     }
   };
+  
   selectLayer = (layerID) => {
     return this.setState({selectedLayer: layerID});
   };
+  
   onLayerEnter = (layerID) => {
     this.layerStack.push(layerID);
     this.setState({hoveredLayer: this.layerStack[this.layerStack.length - 1]});
   };
+  
   onLayerLeave = (layerID) => {
     if (this.layerStack.length === 0 || layerID !== this.layerStack[this.layerStack.length - 1]) {
       console.error('cannot pop layer', this.layerStack, layerID);
