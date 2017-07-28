@@ -102,7 +102,7 @@ export default class App extends React.Component {
     } else {
       let queryObj = qs.parse(location.search.substr(1));
       if ('url' in queryObj) {
-        url = decodeURIComponent(queryObj['url']);
+        url = queryObj['url'];
       }
     }
     if (url) {
@@ -120,7 +120,11 @@ export default class App extends React.Component {
         })
         .catch(e => {
           this.setState({loading: false});
-          alert(e);
+          if(e.message) {
+            alert(e.message);
+          }else{
+            alert(`Fail to load from this url. Does it allow cross domain access?`);
+          }
           location.search = '';
         });
     }
