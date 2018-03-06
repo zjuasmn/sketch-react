@@ -456,9 +456,21 @@ export class TextStyle {
     // if(model.attributedString.archivedAttributedString.NSAttributes instanceof Array){
     // debugger;
     // }
-    if (this.encodedAttributes.NSParagraphStyle.NSAlignment !== Alignment.Left) {
-      Object.assign(style, {textAlign: AlignmentString[this.encodedAttributes.NSParagraphStyle.NSAlignment]});
+    
+    if (this.encodedAttributes) {
+      if (typeof this.encodedAttributes.NSParagraphStyle !== 'undefined' && this.encodedAttributes.NSParagraphStyle.NSAlignment !== Alignment.Left) {
+        Object.assign(style, {textAlign: AlignmentString[this.encodedAttributes.NSParagraphStyle.NSAlignment]});
+      }
+      if (typeof this.encodedAttributes.paragraphStyle !== 'undefined' && this.encodedAttributes.paragraphStyle.NSAlignment !== Alignment.Left) {
+        Object.assign(style, {textAlign: AlignmentString[this.encodedAttributes.paragraphStyle.NSAlignment]});
+      }
+
+      //Backwards compatible
+      if (typeof this.encodedAttributes.NSColor === 'undefined' && typeof this.encodedAttributes.MSAttributedStringColorDictionaryAttribute !== 'undefined' ) {
+        this.encodedAttributes.NSColor = this.encodedAttributes.MSAttributedStringColorDictionaryAttribute;
+      }
     }
+
     if (model.textBehaviour) {
       Object.assign(style, {width: model.frame.width});
     } else {
